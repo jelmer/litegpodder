@@ -64,7 +64,11 @@ async def handle_logout(request):
 
 async def check_auth(request):
     username = request.match_info['username']
-    session_username = request.app['sessions'][request.cookies['sessionid']]
+    try:
+        sessionid = request.cookies['sessionid']
+    except KeyError:
+        raise web.HTTPUnauthorized(text='not logged in')
+    session_username = request.app['sessions'][sessionid]
     if username != session_username:
         raise web.HTTPBadRequest(text="username mismatch")
 
