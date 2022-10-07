@@ -5,11 +5,11 @@ description = "Minimal gpodder-compatible server"
 authors = ["Jelmer Vernooĳ <jelmer@jelmer.uk>"]
 license = "GPLv3+"
 readme = "README.md"
+repository = "https://github.com/jelmer/litegpodder"
 
 [tool.poetry.dependencies]
 python = "^3.10"
 aiohttp = "^3.8.3"
-
 
 [build-system]
 requires = ["poetry-core"]
