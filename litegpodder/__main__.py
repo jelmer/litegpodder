@@ -23,7 +23,14 @@ import json
 import logging
 import os
 from aiohttp import web
-from .api import LitegpodderApp, Device, Subscription, create_app, Action
+from .api import (
+    LitegpodderApp,
+    Device,
+    Subscription,
+    UnknownDevice,
+    create_app,
+    Action,
+    )
 
 
 class MainApp(LitegpodderApp):
@@ -55,19 +62,25 @@ class MainApp(LitegpodderApp):
                 type=js.get('type'),
                 subscriptions=len(js.get('subscriptions', [])))
 
-    def update_device(self, username, device):
+    def update_device(self, username: str, device: Device) -> None:
         devices_path = self._devices_path(username)
         with open(os.path.join(devices_path, device.id + '.json'), 'w') as f:
             json.dump(
                 {'caption': device.caption, 'type': device.type}, f, indent=4)
 
-    def sync_subscriptions_down(self, username, deviceid, since=0):
+    def sync_subscriptions_down(
+            self, username: str, deviceid: str, since: int = 0) -> tuple[
+                list[str], list[str], int]:
         subscriptions_path = self._subscriptions_path(username, deviceid)
         if since == 0:
             a = set()
         else:
-            with open(os.path.join(subscriptions_path, str(since)), 'r') as f:
-                a = set(json.load(f))
+            try:
+                with open(os.path.join(
+                        subscriptions_path, str(since)), 'r') as f:
+                    a = set(json.load(f))
+            except FileNotFoundError:
+                raise UnknownDevice(deviceid)
 
         latest_path = os.path.join(subscriptions_path, 'latest')
         try:

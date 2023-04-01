@@ -224,8 +224,11 @@ async def handle_sync_down_subscriptions(request):
     since = int(request.query.get('since', '0'))
     username = request.match_info['username']
     deviceid = request.match_info['deviceid']
-    (add, remove, timestamp) = request.app['app'].sync_subscriptions_down(
-        username, deviceid, since=since)
+    try:
+        (add, remove, timestamp) = request.app['app'].sync_subscriptions_down(
+            username, deviceid, since=since)
+    except UnknownDevice:
+        raise web.HTTPNotFound()
     return web.json_response({
         'add': add, 'remove': remove, 'timestamp': timestamp}, status=200)
 
@@ -241,6 +244,12 @@ async def handle_sync_up_subscriptions(request):
     return web.json_response({
         'timestamp': timestamp,
         'update_urls': list(rewritten_urls.items())})
+
+
+class UnknownDevice(KeyError):
+
+    def __init__(self, device_id):
+        self.device_id = device_id
 
 
 class LitegpodderApp:
